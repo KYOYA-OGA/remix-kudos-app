@@ -2,7 +2,7 @@ import { json } from '@remix-run/node';
 import type { LoaderFunction } from '@remix-run/node';
 import Layout from '~/components/layout';
 import { UserPanel } from '~/components/user-panel';
-import { requireUserId } from '~/utils/auth.server';
+import { getUser, requireUserId } from '~/utils/auth.server';
 import { getOtherUsers } from '~/utils/users.server';
 import { Outlet, useLoaderData } from '@remix-run/react';
 import { getFilteredKudos, getRecentKudos } from '~/utils/kudo.server';
@@ -14,6 +14,7 @@ import SearchBar from '~/components/search-bar';
 export const loader: LoaderFunction = async ({ request }) => {
   const userId = await requireUserId(request);
   const users = await getOtherUsers(userId);
+  const user = await getUser(request);
 
   const url = new URL(request.url);
   const sort = url.searchParams.get('sort');
@@ -76,7 +77,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 
   const kudos = await getFilteredKudos(userId, sortOptions, textFilter);
   const recentKudos = await getRecentKudos();
-  return json({ users, kudos, recentKudos });
+  return json({ users, kudos, recentKudos, user });
 };
 
 interface KudoWithAuthor extends IKudo {
@@ -86,14 +87,14 @@ interface KudoWithAuthor extends IKudo {
 }
 
 export default function Home() {
-  const { users, kudos, recentKudos } = useLoaderData();
+  const { user, users, kudos, recentKudos } = useLoaderData();
   return (
     <Layout>
       <Outlet />
       <div className="h-full flex">
         <UserPanel users={users} />
         <div className="flex-1 flex flex-col">
-          <SearchBar />
+          <SearchBar profile={user.profile} />
           <div className="flex-1 flex">
             <div className="w-full p-10 flex flex-col gap-y-4">
               {kudos.map((kudo: KudoWithAuthor) => (

@@ -26,7 +26,7 @@ model Kudo {
   createdAt   DateTime @default(now())
   style       KudoStyle?
   message     String
-  author      User @relation(references: [id], fields: [authorId], "AuthoredKudos")
+  author      User @relation(references: [id], fields: [authorId], onDelete: Cascade, "AuthoredKudos")
   authorId    String @db.ObjectId
   recipient   User @relation(references: [id], fields: [recipientId], "ReceivedKudos")
   recipientId String @db.ObjectId
@@ -35,6 +35,8 @@ model Kudo {
 type Profile {
   firstName String
   lastName  String
+  department Department? @default(MARKETING)
+  profilePicture String?
 }
 
 type KudoStyle {
